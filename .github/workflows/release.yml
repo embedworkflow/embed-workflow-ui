@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {} # allow manual trigger (e.g. the first bootstrap release)
+
+# Prevent overlapping releases.
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write # create the Version Packages PR / tags
+  pull-requests: write # open the Version Packages PR
+  id-token: write # npm provenance (OIDC)
+
+jobs:
+  release:
+    # Matches embed-workflow-typescript: NPM_TOKEN lives as a `production`
+    # environment secret (gate publishing with required reviewers if desired).
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+      # When changesets exist, this opens/updates a "Version Packages" PR that
+      # bumps versions + writes changelogs. When none exist (that PR was merged),
+      # it runs `npm run release` to publish the bumped packages to npm.
+      - name: Create Release PR or publish
+        uses: changesets/action@v1
+        with:
+          version: npm run version
+          publish: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Provenance requires a PUBLIC repo — CI publish fails otherwise.
+          # Uncomment when this repo is made public:
+          # NPM_CONFIG_PROVENANCE: "true"
