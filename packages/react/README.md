@@ -14,15 +14,32 @@ npm i @embedworkflow/react
 
 ## Prerequisites
 
-The EWF loader script must be on the page, and `EWF.load(publicKey, { jwt })`
-called once (sign the JWT **server-side**). See the
-[embedding guide](https://embedworkflow.com/docs).
+The EWF loader script must be on the page, and auth established once (sign the JWT
+**server-side**). Prefer the exported `load()` over `window.EWF.load` — it retries
+through the loader's brief startup gap so a fast call isn't dropped:
 
-## `<EwfField>`
+```tsx
+import { load } from "@embedworkflow/react";
+load(pkToken, { jwt });
+```
 
-Render a single field from a workflow's form inside your own form — e.g. a
-Slack-channel picker bound to your managed connection. Uncontrolled: it reports
-changes via `onChange`; your app owns submission.
+See the [embedding guide](https://embedworkflow.com/docs). Components wait for the
+runtime internally — no readiness code needed.
+
+## Components
+
+One component per embeddable renderer:
+
+| Component | Renders | Key props |
+| --- | --- | --- |
+| `EwfApp` | The full workflow builder / app | `basePath` |
+| `EwfSettingsForm` | A workflow's client settings form | `workflowId` \| `workflowKey` |
+| `EwfConnections` | The managed connections UI | — |
+| `EwfField` | A single field from a workflow's form | `workflowId`\|`workflowKey`, `fieldId`, `defaultValue`; emits `onChange` |
+
+All accept `className` and `style`.
+
+### `EwfField`
 
 ```tsx
 import { EwfField } from "@embedworkflow/react";
@@ -34,18 +51,38 @@ import { EwfField } from "@embedworkflow/react";
 />;
 ```
 
-| Prop | Type | Notes |
-| --- | --- | --- |
-| `workflowId` / `workflowKey` | `string?` | Identify the workflow (one or the other). |
-| `fieldId` | `string` | Field name or id. Required. |
-| `defaultValue` | `string?` | Seed value (uncontrolled). |
-| `onChange` | `(detail: EwfChangeDetail) => void` | Fires on every change. |
-| `className` / `style` | — | Applied to the host element. |
+`onChange` receives `EwfChangeDetail` — `{ fieldId, value, option? }`.
 
-`EwfChangeDetail` is `{ fieldId, value, option? }` — see the embedding guide.
+### `EwfApp`
 
-Also exported: `useEwfMount` (the hook behind `<EwfField>`), and `whenReady` /
-`isReady` (re-exported from `@embedworkflow/embed-core`).
+```tsx
+<EwfApp basePath="workflows" style={{ height: "calc(100vh - 60px)" }} />
+```
+
+- `basePath` has **no leading slash** (the renderer adds it).
+- Give it an **explicit, non-percentage height** (a `%` height collapses to 0).
+- The app does client-side routing under `basePath`, so add a **catch-all route**
+  in your router for `/{basePath}/*` (e.g. React Router `path="/workflows/*"`).
+
+## `EwfEmbed` — escape hatch / forward-compat
+
+Embed any renderer by name, including ones this package version has no typed
+component for yet. It works for whatever the **loaded CDN runtime** supports, so a
+renderer newly shipped in the SDK is usable without upgrading this package.
+
+```tsx
+import { EwfEmbed } from "@embedworkflow/react";
+
+<EwfEmbed name="reports" data={{ "base-path": "reports" }} onChange={...} />;
+// → <div class="EWF__reports" data-base-path="reports">
+```
+
+- `name` — renderer class suffix (`"reports"` → `EWF__reports`).
+- `data` — keys map to `data-<key>`.
+
+Prefer the named components when they exist; reach for `EwfEmbed` for dynamic
+names or renderers the package predates. (The named components are built on top
+of `EwfEmbed` via `createEmbed`, also exported if you want a typed façade.)
 
 ## License
 

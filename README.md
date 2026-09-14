@@ -12,8 +12,13 @@ runtime and bridge its events into each framework's idioms.
 | Package | Description |
 | --- | --- |
 | [`@embedworkflow/embed-core`](packages/core) | Framework-agnostic core — a typed client over `window.EWF` (readiness, mount/unmount, types). |
-| [`@embedworkflow/react`](packages/react) | React components (`<EwfField>`). |
+| [`@embedworkflow/react`](packages/react) | React components (`EwfApp`, `EwfSettingsForm`, `EwfConnections`, `EwfField`, `EwfEmbed`). |
+| [`@embedworkflow/vue`](packages/vue) | Vue 3 components (same set). |
 | `@embedworkflow/angular` | _(coming next)_ Angular components. |
+
+Each framework package exposes one component per embeddable renderer, plus
+`EwfEmbed` — a generic escape hatch that can mount any renderer the loaded CDN
+runtime supports (usable without upgrading the package when a new renderer ships).
 
 All wrappers depend on the `embed-core`; none bundle the EWF runtime — it is
 loaded at runtime from the CDN.

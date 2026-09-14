@@ -1,6 +1,6 @@
 {
   "name": "@embedworkflow/react",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "React components for embedding EmbedWorkflow UI.",
   "license": "MIT",
   "type": "module",
@@ -23,7 +23,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@embedworkflow/embed-core": "^0.1.0"
+    "@embedworkflow/embed-core": "^0.2.0"
   },
   "peerDependencies": {
     "react": ">=17"

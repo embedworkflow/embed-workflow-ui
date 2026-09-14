@@ -1,5 +1,5 @@
 export { EwfApp, EwfSettingsForm, EwfConnections, EwfField } from "./embeds";
-export { EwfEmbed, type EwfEmbedProps } from "./EwfEmbed";
+export { EwfEmbed } from "./EwfEmbed";
 export { createEmbed } from "./createEmbed";
 export { useEwfMount } from "./useEwfMount";
 export { load } from "@embedworkflow/embed-core";
