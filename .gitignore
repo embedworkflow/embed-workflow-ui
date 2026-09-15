@@ -1,6 +1,8 @@
 node_modules/
 dist/
 packs/
+# internal doc-source for the site (not part of the public SDK)
+docs/
 *.log
 .DS_Store
 .npmrc
